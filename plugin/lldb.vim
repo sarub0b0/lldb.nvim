@@ -1,10 +1,15 @@
 
 
-if exists('g:loaded_lldb')
+if exists('g:loaded_lldb') || !has('nvim')
     finish
 endif
 
 let g:loaded_lldb = 1
+
+call lldb#init()
+call lldb#ui#init()
+call lldb#operate#init()
+call lldb#sign#init()
 
 " let s:bp_symbol = get(g:, 'lldb#sign#bp_symbol', 'B>')
 " let s:pc_symbol = get(g:, 'lldb#sign#pc_symbol', '->')
