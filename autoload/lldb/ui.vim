@@ -31,6 +31,10 @@ function! s:create_panes()
     endfor
 endfunction
 
+function! s:move_bufname(bufname) abort
+    execute "execute bufnr(bufname('" . a:bufname . "')).'wincmd w'"
+endfunction
+
 function! s:buf_options()
     setlocal noswapfile
     setlocal buftype=nofile

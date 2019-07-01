@@ -5,6 +5,11 @@ function! lldb#operate#init()
     let s:job_queue = []
     let s:output_msg = []
 
+    let s:start_bufname = ''
+    let s:temp_bufname = ''
+
+    let s:running_target = v:false
+
     let s:job_type_dict = {
                 \ 'start'           : 'start',
                 \ 'run'             : 'run',
@@ -12,11 +17,14 @@ function! lldb#operate#init()
                 \ 'frame variable'  : 'variables',
                 \ 'thread list'     : 'threads',
                 \ 'breakpoint list' : 'breakpoints',
-                \ 'next'            : 'next'
+                \ 'next'            : 'next',
+                \ 'continue'        : 'continue'
                 \ }
 endfunction
 
 function! lldb#operate#start(target) abort
+    let s:start_bufname = bufname('%')
+
     if g:lldb#ui#created == 0
         call lldb#ui#create_panes()
         let g:lldb#ui#created = 1
@@ -32,16 +40,21 @@ function! lldb#operate#stop() abort
 endfunction
 
 function! lldb#operate#run() abort
-    let s:job_queue = ['run']
-    if g:lldb#operate#is_breakpoints == v:true
-        call extend(s:job_queue, ['frame variable', 'thread list'])
-        echomsg string(s:job_queue)
+    if s:running_target == v:false
+        let s:temp_bufname = bufname('%')
+        let s:running_target = v:true
+        let s:job_queue = ['run']
+        if g:lldb#operate#is_breakpoints == v:true
+            call extend(s:job_queue, ['frame variable', 'thread list'])
+            echomsg string(s:job_queue)
+        endif
+        call lldb#operate#send('run')
     endif
-    call lldb#operate#send('run')
+    echomsg "Running target"
 endfunction
 
 function! lldb#operate#send(cmd) abort
-    echo s:job
+    echomsg "send cmd:" . a:cmd
     call chansend(s:job, a:cmd . "\n")
 endfunction
 
@@ -54,6 +67,7 @@ function! lldb#operate#variables() abort
 endfunction
 
 function! lldb#operate#breakpoints() abort
+    let s:temp_bufname = bufname('%')
     let s:job_queue = ['breakpoint list']
     call lldb#operate#send('breakpoint list')
 endfunction
@@ -113,7 +127,11 @@ function! s:on_event(job_id, data, event) dict abort
 
             call remove(s:job_queue, 0)
             if len(s:job_queue) == 0
+                if s:running_type ==# 'run'
+                    let s:running_target = v:false
+                endif
                 echomsg 'all job done'
+                echomsg 'Running target? ' . s:running_target
                 return 0
             endif
             echomsg 'send ' . string(s:job_queue[0])
@@ -134,10 +152,30 @@ function! s:output_buffer(type, msg) abort
     let l:move_window = "execute bufwinnr(bufnr('" . l:buftype . "')).'wincmd w'"
     execute l:move_window
 
+    " setlocal modifiable
+
+    echomsg 'output_buffer ' . l:buftype
     call append('$', a:msg)
     call s:post_process(l:buftype)
 
     let s:output_msg = []
+
+    " setlocal nomodifiable
+
+    echomsg a:type
+    if a:type ==# 'start'
+        echomsg 'move start buffer'
+        call s:move_bufname(s:start_bufname)
+    else
+        echomsg 'move temp buffer'
+        call s:move_bufname(s:temp_bufname)
+    endif
+
+endfunction
+
+function! s:move_bufname(bufname) abort
+    execute "execute bufnr(bufname('" . a:bufname . "')).'wincmd w'"
+    echomsg "execute \"execute bufnr(bufname('" . a:bufname . "')).'wincmd w'\""
 endfunction
 
 function! s:check_buftype_lldb(type)
@@ -184,8 +222,10 @@ endfunction
 
 function! s:check_run_done(msg) abort
     if g:lldb#operate#is_breakpoints == v:false
+        echomsg eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
         return eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
     else
+                echomsg eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
         return eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
     endif
     return 0
