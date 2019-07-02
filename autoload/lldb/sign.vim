@@ -4,7 +4,7 @@
 " let s:sign_pc_unsel_name
 function! lldb#sign#init()
 
-    let s:bp_symbol = get(g:, 'lldb#bp_symbol', 'B>')
+    let s:bp_symbol = get(g:, 'lldb#bp_symbol', '>>')
     let s:pc_symbol = get(g:, 'lldb#pc_symbol', '>>')
 
     highlight default link LLBreakpointSign Text
