@@ -95,6 +95,10 @@ endfunction
 
 function! lldb#operate#continue() abort
     let s:job_queue = ['continue']
+    if g:lldb#operate#is_breakpoints == v:true
+        call extend(s:job_queue, ['frame variable', 'thread list'])
+        echomsg string(s:job_queue)
+    endif
     call lldb#operate#send('continue')
 endfunction
 
@@ -183,6 +187,7 @@ function! s:check_buftype_lldb(type)
                 \ a:type ==# 'start'    ||
                 \ a:type ==# 'stop'     ||
                 \ a:type ==# 'run'      ||
+                \ a:type ==# 'continue' ||
                 \ a:type ==# 'next'
                 \ )
 endfunction
@@ -203,7 +208,10 @@ function! s:check_done(type, msg) abort
         let l:ret = s:check_breakpoints_done(a:msg)
     elseif a:type ==# 'next'
         let l:ret = s:check_next_done(a:msg)
+    elseif a:type ==# 'continue'
+        let l:ret = s:check_continue_done(a:msg)
     endif
+    echomsg "check done(" . l:ret . ")"
 
     return eval(l:ret == 1)
 endfunction
@@ -225,13 +233,14 @@ function! s:check_run_done(msg) abort
         echomsg eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
         return eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
     else
-                echomsg eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
+        echomsg eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
         return eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
     endif
     return 0
 endfunction
 
 function! s:check_threads_done(msg) abort
+    echomsg string(a:msg)
     return eval(a:msg[-1] =~# '\* thread .*')
 endfunction
 
@@ -245,6 +254,16 @@ endfunction
 
 function! s:check_next_done(msg) abort
     return eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
+endfunction
+
+function! s:check_continue_done(msg) abort
+    if eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped') ||
+                \ eval(a:msg[-1] =~# 'Process [0-9]* resuming') ||
+                \ eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
+        return 1
+    endif
+    echomsg 'check continue=' . a:msg[-1]
+    return 0
 endfunction
 
 let s:callbacks = {
