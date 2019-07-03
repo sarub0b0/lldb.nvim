@@ -48,6 +48,7 @@ function! s:buf_options()
     setlocal nospell
     setlocal nonumber
     setlocal filetype=lldb
+    setlocal nomodifiable
 endfunction
 
 function! s:check_panes()

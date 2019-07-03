@@ -36,6 +36,7 @@ endfunction
 
 function! lldb#operate#stop() abort
     let s:job_queue = ['stop']
+    let s:temp_bufname = bufname('%')
     call jobstop(s:job)
 endfunction
 
@@ -46,7 +47,6 @@ function! lldb#operate#run() abort
         let s:job_queue = ['run']
         if g:lldb#operate#is_breakpoints == v:true
             call extend(s:job_queue, ['frame variable', 'thread list'])
-            echomsg string(s:job_queue)
         endif
         call lldb#operate#send('run')
     endif
@@ -84,7 +84,6 @@ function! lldb#operate#next() abort
     let s:job_queue = ['next']
     if g:lldb#operate#is_breakpoints == v:true
         call extend(s:job_queue, ['frame variable', 'thread list'])
-        echomsg string(s:job_queue)
     endif
     call lldb#operate#send('next')
 endfunction
@@ -97,7 +96,6 @@ function! lldb#operate#continue() abort
     let s:job_queue = ['continue']
     if g:lldb#operate#is_breakpoints == v:true
         call extend(s:job_queue, ['frame variable', 'thread list'])
-        echomsg string(s:job_queue)
     endif
     call lldb#operate#send('continue')
 endfunction
@@ -108,10 +106,16 @@ endfunction
 function! s:on_event(job_id, data, event) dict abort
     let l:str = []
 
+    if a:event == 'exit'
+        call s:output_buffer('stop', "***** exit ******")
+        echomsg 'exit event'
+        return 0
+    endif
+
     let l:str = s:remove_empty(a:data)
 
     call extend(s:output_msg, l:str)
-    " echomsg string(s:output_msg)
+    " echomsg a:event . string(s:output_msg)
 
     if 0 < len(l:str)
         let s:running_type = s:job_type_dict[s:job_queue[0]]
@@ -156,22 +160,26 @@ function! s:output_buffer(type, msg) abort
     let l:move_window = "execute bufwinnr(bufnr('" . l:buftype . "')).'wincmd w'"
     execute l:move_window
 
-    " setlocal modifiable
+    setlocal modifiable
 
-    echomsg 'output_buffer ' . l:buftype
-    call append('$', a:msg)
+    let l:output_msg = ''
+    if l:buftype ==# 'threads'
+        let l:tmp = split(a:msg[-1], ',')
+        let l:output_msg = substitute(l:tmp[0], 'tid.*', '', 'g') . substitute(l:tmp[1], '^ 0x\([0-9]\|[a-z]\)\+ ', '','g')
+    else
+        let l:output_msg = a:msg
+    endif
+
+    call append('$', l:output_msg)
     call s:post_process(l:buftype)
 
     let s:output_msg = []
 
-    " setlocal nomodifiable
+    setlocal nomodifiable
 
-    echomsg a:type
     if a:type ==# 'start'
-        echomsg 'move start buffer'
         call s:move_bufname(s:start_bufname)
     else
-        echomsg 'move temp buffer'
         call s:move_bufname(s:temp_bufname)
     endif
 
@@ -193,8 +201,6 @@ function! s:check_buftype_lldb(type)
 endfunction
 
 function! s:check_done(type, msg) abort
-    echomsg 'check ' . string(a:type)
-    echomsg string(a:msg)
     let l:ret = 0
     if a:type ==# 'start'
         let l:ret = s:check_start_done(a:msg)
@@ -224,6 +230,7 @@ function! s:post_process(buftype) abort
     execute 'g/^$/d'
     execute '$'
 endfunction
+
 function! s:check_start_done(msg) abort
     return eval(a:msg[-1] =~# 'error: unable to find .*' || a:msg[-1] =~# 'Current executable set to .*')
 endfunction
@@ -240,7 +247,6 @@ function! s:check_run_done(msg) abort
 endfunction
 
 function! s:check_threads_done(msg) abort
-    echomsg string(a:msg)
     return eval(a:msg[-1] =~# '\* thread .*')
 endfunction
 
@@ -291,7 +297,9 @@ endfunction
 
 function! s:buffer_clean(buftype) abort
     call s:buffer_move(a:buftype)
+    setlocal modifiable
     execute '%d'
+    setlocal nomodifiable
 endfunction
 
 function! s:buffer_move(buftype) abort
