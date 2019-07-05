@@ -8,7 +8,7 @@ function! lldb#operate#init()
     let s:start_bufname = ''
     let s:temp_bufname = ''
 
-    let s:running_target = v:false
+    let s:set_running_target = v:false
 
     let s:job_type_dict = {
                 \ 'start'           : 'start',
@@ -41,20 +41,21 @@ function! lldb#operate#stop() abort
 endfunction
 
 function! lldb#operate#run() abort
-    if s:running_target == v:false
+    if s:set_running_target == v:false
         let s:temp_bufname = bufname('%')
-        let s:running_target = v:true
+        let s:set_running_target = v:true
         let s:job_queue = ['run']
         if g:lldb#operate#is_breakpoints == v:true
             call extend(s:job_queue, ['frame variable', 'thread list'])
         endif
         call lldb#operate#send('run')
     endif
+    echomsg 'Set Running target ' . string(s:set_running_target)
     echomsg "Running target"
 endfunction
 
 function! lldb#operate#send(cmd) abort
-    echomsg "send cmd:" . a:cmd
+    echomsg "send cmd: " . a:cmd
     call chansend(s:job, a:cmd . "\n")
 endfunction
 
@@ -93,6 +94,7 @@ function! lldb#operate#step() abort
 endfunction
 
 function! lldb#operate#continue() abort
+    let s:temp_bufname = bufname('%')
     let s:job_queue = ['continue']
     if g:lldb#operate#is_breakpoints == v:true
         call extend(s:job_queue, ['frame variable', 'thread list'])
@@ -109,9 +111,12 @@ function! s:on_event(job_id, data, event) dict abort
     if a:event == 'exit'
         call s:output_buffer('stop', "***** exit ******")
         echomsg 'exit event'
+        call lldb#sign#reset()
         return 0
     endif
 
+
+    echomsg string(a:data)
     let l:str = s:remove_empty(a:data)
 
     call extend(s:output_msg, l:str)
@@ -121,6 +126,11 @@ function! s:on_event(job_id, data, event) dict abort
         let s:running_type = s:job_type_dict[s:job_queue[0]]
         let l:ret_check =  s:check_done(s:running_type, l:str)
         if l:ret_check == 1
+
+            if 0 < len(s:output_msg) && eval(s:output_msg[-1] =~# 'Process [0-9]* exited .*')
+                call lldb#sign#reset()
+                let s:set_running_target = v:false
+            endif
 
             if s:check_buftype_lldb(s:running_type)
                 call lldb#sign#check_pc(s:output_msg)
@@ -135,11 +145,10 @@ function! s:on_event(job_id, data, event) dict abort
 
             call remove(s:job_queue, 0)
             if len(s:job_queue) == 0
-                if s:running_type ==# 'run'
-                    let s:running_target = v:false
-                endif
-                echomsg 'all job done'
-                echomsg 'Running target? ' . s:running_target
+                " if s:running_type ==# 'run'
+                " endif
+                                echomsg 'all job done'
+                echomsg 'Running target? ' . s:set_running_target
                 return 0
             endif
             echomsg 'send ' . string(s:job_queue[0])
@@ -170,6 +179,7 @@ function! s:output_buffer(type, msg) abort
         let l:output_msg = a:msg
     endif
 
+    echomsg string(l:output_msg)
     call append('$', l:output_msg)
     call s:post_process(l:buftype)
 
@@ -255,7 +265,7 @@ function! s:check_variables_done(msg) abort
 endfunction
 
 function! s:check_breakpoints_done(msg) abort
-    return eval(a:msg[-1] =~# '.* where = .*')
+    return eval(a:msg[-1] =~# '.* where = .*') || eval(a:msg[-1] =~# 'No breakpoints .*')
 endfunction
 
 function! s:check_next_done(msg) abort
@@ -264,11 +274,9 @@ endfunction
 
 function! s:check_continue_done(msg) abort
     if eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped') ||
-                \ eval(a:msg[-1] =~# 'Process [0-9]* resuming') ||
                 \ eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
         return 1
     endif
-    echomsg 'check continue=' . a:msg[-1]
     return 0
 endfunction
 

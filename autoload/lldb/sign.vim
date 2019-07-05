@@ -22,36 +22,106 @@ endfunction
 
 let s:bp_counter = 0
 let s:bp_place_id = 1
+let s:bp_list = []
 function! lldb#sign#bp_set(file, line)
-    let g:lldb#operate#buftype = 'lldb'
-    execute 'sign place ' . s:bp_place_id . ' line=' . a:line . ' name=llsign_bp file=' . a:file
-    let s:bp_place_id += 1
-    call lldb#operate#send('breakpoint set -f ' . a:file . ' -l ' . a:line)
-    call lldb#operate#breakpoints()
-    let s:bp_counter += 1
+    " if 0 < s:bp_counter
+    "    " call lldb#sign#bp_unset()
+    " endif
+
+    let l:is_equal = v:false
+    let l:rm_idx = 0
+    let l:rm_id = 0
+    for p in s:bp_list
+        let l:id = p['id']
+        let l:line = p['line']
+        let l:file = p['file']
+        " let l:file = split(p['file'], '/')
+        " let l:file = l:file[-1]
+        echomsg l:id . ' ' . l:line . ' ' .  l:file
+        if l:file == a:file && l:line == a:line
+            execute 'sign unplace ' . l:id
+            let l:is_equal = v:true
+            let l:rm_id = l:id
+            break
+        endif
+        let l:rm_idx += 1
+    endfor
+    if l:is_equal
+        echomsg string(s:bp_list)
+        call remove(s:bp_list, l:rm_idx)
+        echomsg string(s:bp_list)
+        let s:bp_counter -= 1
+        call lldb#operate#send('breakpoint delete ' . l:rm_id)
+        call lldb#operate#breakpoints()
+    else
+
+        let g:lldb#operate#buftype = 'lldb'
+        execute 'sign place ' . s:bp_place_id . ' line=' . a:line . ' name=llsign_bp file=' . a:file
+
+        call add (s:bp_list, {'id': s:bp_place_id, 'line': a:line, 'file': a:file})
+        let s:bp_place_id += 1
+        call lldb#operate#send('breakpoint set -f ' . a:file . ' -l ' . a:line)
+        call lldb#operate#breakpoints()
+        echomsg string(s:bp_list)
+        let s:bp_counter += 1
+    endif
     if 0 < s:bp_counter
         let g:lldb#operate#is_breakpoints = v:true
     endif
 endfunction
 
-function! lldb#sign#bp_unset(number)
-    let s:bp_counter -= 1
-    if s:bp_counter <= 0
-        let s:bp_counter = 0
-        let g:lldb#operate#is_breakpoints = v:false
-    endif
+
+function! lldb#sign#reset() abort
+    for p in s:bp_list
+        let l:id = p['id']
+        let l:line = p['line']
+        let l:file = p['file']
+        execute 'sign place ' . l:id . ' line=' . l:line . ' name=llsign_bp file=' . l:file
+    endfor
 endfunction
 
-let s:pc_counter = 0
-let s:pc_place_id = 1
+function! lldb#sign#clean() abort
+    for p in s:bp_list
+        let l:id = p['id']
+        execute 'sign unplace ' . l:id
+        call lldb#operate#send('breakpoint delete ' . l:id)
+    endfor
+    call lldb#operate#breakpoints()
+    let s:bp_counter = 0
+    let s:bp_list = []
+    let g:lldb#operate#is_breakpoints = v:false
+endfunction
+
+
 function! lldb#sign#check_pc(msg)
     let l:param = []
     let l:param = s:pickup_param(a:msg)
     if l:param == []
         return 0
     endif
-    execute 'sign place ' . s:pc_place_id . ' line=' . l:param[1] . ' name=llsign_pc_sel file=' . bufname(l:param[0])
-    let s:pc_place_id += 1
+    echomsg string(l:param)
+    " ['test.c', '7']
+
+    let l:id = -1
+    let l:line = ''
+    let l:file = ''
+    echomsg string(s:bp_list)
+    for p in s:bp_list
+        let l:id = p['id']
+        let l:line = p['line']
+        let l:file = split(p['file'], '/')
+        let l:file = l:file[-1]
+        echomsg l:id . ' ' . l:line . ' ' .  l:file
+        echomsg string(l:param)
+        if l:file == l:param[0] && l:line == l:param[1]
+            echomsg 'pc_sel'
+            execute 'sign place ' . l:id . ' line=' . l:line . ' name=llsign_pc_sel file=' . l:file
+        else
+            echomsg 'pc_unsel'
+            execute 'sign place ' . l:id . ' line=' . l:line . ' name=llsign_pc_unsel file=' . l:file
+        endif
+    endfor
+    " execute 'sign place ' . l:id . ' line=' . l:line . ' name=llsign_pc_sel file=' . l:file
 endfunction
 
 function! s:pickup_param(msg)
