@@ -2,7 +2,14 @@
 <!-- ※ Warning: It is not implemented yet. I'm developing this plugin. -->
 
 This plugin is created with vim script without python library. <br>
-That's because recompiling LLDB does not work.
+That's because recompiling LLDB does not work in MacOS.
+
+## Usage
+
+```
+# Init
+:LLStart <debug target>
+```
 
 ## Key bind
 ```
@@ -38,3 +45,18 @@ That's because recompiling LLDB does not work.
     " test command
     command! -nargs=0 -complete=file LLStart    call lldb#operate#start('test')
 ```
+
+## Complete
+- run
+- breakpoints
+- continue
+- stop
+- thread list
+- frame variable
+
+## TODO
+- watchpoint
+- next
+- step
+- backtrace
+
