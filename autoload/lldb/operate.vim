@@ -18,8 +18,20 @@ function! lldb#operate#init()
                 \ 'thread list'     : 'threads',
                 \ 'breakpoint list' : 'breakpoints',
                 \ 'next'            : 'next',
-                \ 'continue'        : 'continue'
+                \ 'continue'        : 'continue',
+                \ 'backtrace'       : 'backtrace'
                 \ }
+
+    let s:join_jobs = []
+
+    for l:ui in g:lldb#ui#default_panes
+        if l:ui ==# 'threads'
+            call add(s:join_jobs, 'thread list')
+        endif
+        if l:ui ==# 'variables'
+            call add(s:join_jobs, 'frame variable')
+        endif
+    endfor
 endfunction
 
 function! lldb#operate#start(target) abort
@@ -37,6 +49,7 @@ endfunction
 function! lldb#operate#stop() abort
     let s:job_queue = ['stop']
     let s:temp_bufname = bufname('%')
+    call lldb#sign#zero()
     call jobstop(s:job)
 endfunction
 
@@ -46,7 +59,7 @@ function! lldb#operate#run() abort
         let s:set_running_target = v:true
         let s:job_queue = ['run']
         if g:lldb#operate#is_breakpoints == v:true
-            call extend(s:job_queue, ['frame variable', 'thread list'])
+            call extend(s:job_queue, s:join_jobs)
         endif
         call lldb#operate#send('run')
     endif
@@ -60,6 +73,7 @@ function! lldb#operate#send(cmd) abort
 endfunction
 
 function! lldb#operate#backtrace() abort
+    let s:job_queue = ['backtrace']
     call lldb#operate#send('backtrace')
 endfunction
 
@@ -84,12 +98,16 @@ endfunction
 function! lldb#operate#next() abort
     let s:job_queue = ['next']
     if g:lldb#operate#is_breakpoints == v:true
-        call extend(s:job_queue, ['frame variable', 'thread list'])
+        call extend(s:job_queue, s:join_jobs)
     endif
     call lldb#operate#send('next')
 endfunction
 
 function! lldb#operate#step() abort
+    let s:job_queue = ['step']
+    if g:lldb#operate#is_breakpoints == v:true
+        call extend(s:job_queue, s:join_jobs)
+    endif
     call lldb#operate#send('step')
 endfunction
 
@@ -97,7 +115,7 @@ function! lldb#operate#continue() abort
     let s:temp_bufname = bufname('%')
     let s:job_queue = ['continue']
     if g:lldb#operate#is_breakpoints == v:true
-        call extend(s:job_queue, ['frame variable', 'thread list'])
+        call extend(s:job_queue, s:join_jobs)
     endif
     call lldb#operate#send('continue')
 endfunction
@@ -147,7 +165,7 @@ function! s:on_event(job_id, data, event) dict abort
             if len(s:job_queue) == 0
                 " if s:running_type ==# 'run'
                 " endif
-                                echomsg 'all job done'
+                echomsg 'all job done'
                 echomsg 'Running target? ' . s:set_running_target
                 return 0
             endif
@@ -202,10 +220,11 @@ endfunction
 
 function! s:check_buftype_lldb(type)
     return eval(
-                \ a:type ==# 'start'    ||
-                \ a:type ==# 'stop'     ||
-                \ a:type ==# 'run'      ||
-                \ a:type ==# 'continue' ||
+                \ a:type ==# 'start'     ||
+                \ a:type ==# 'stop'      ||
+                \ a:type ==# 'run'       ||
+                \ a:type ==# 'continue'  ||
+                \ a:type ==# 'backtrace' ||
                 \ a:type ==# 'next'
                 \ )
 endfunction

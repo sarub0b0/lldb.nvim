@@ -1,7 +1,8 @@
 
 function! lldb#ui#init()
-    let g:lldb#ui#default_panes = ['variables', 'watchpoints', 'threads', 'breakpoints', 'backtrace', 'lldb']
-    let g:lldb#ui#default_panes = ['variables', 'threads', 'breakpoints', 'backtrace', 'lldb']
+    " let l:default_panes = ['variables', 'watchpoints', 'threads', 'breakpoints', 'lldb']
+    let l:default_panes = ['breakpoints', 'variables', 'lldb']
+    let g:lldb#ui#default_panes = get(g:, 'lldb#ui#default_panes', l:default_panes)
     let g:lldb#ui#created = 0
 endfunction
 

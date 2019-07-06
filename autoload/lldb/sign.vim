@@ -67,6 +67,8 @@ function! lldb#sign#bp_set(file, line)
     endif
     if 0 < s:bp_counter
         let g:lldb#operate#is_breakpoints = v:true
+    else
+        let g:lldb#operate#is_breakpoints = v:false
     endif
 endfunction
 
@@ -90,6 +92,9 @@ function! lldb#sign#clean() abort
     let s:bp_counter = 0
     let s:bp_list = []
     let g:lldb#operate#is_breakpoints = v:false
+endfunction
+function! lldb#sign#zero() abort
+    let s:bp_place_id = 0
 endfunction
 
 

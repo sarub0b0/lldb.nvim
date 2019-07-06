@@ -8,8 +8,8 @@ let g:loaded_lldb = 1
 
 call lldb#init()
 call lldb#ui#init()
-call lldb#operate#init()
 call lldb#sign#init()
+call lldb#operate#init()
 
 " let s:bp_symbol = get(g:, 'lldb#sign#bp_symbol', 'B>')
 " let s:pc_symbol = get(g:, 'lldb#sign#pc_symbol', '->')

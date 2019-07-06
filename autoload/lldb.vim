@@ -8,7 +8,7 @@ function! lldb#init()
     nmap <silent> <LocalLeader>bs <Plug>(lldb_step)
     nmap <silent> <LocalLeader>bc <Plug>(lldb_continue)
 
-    " Toggle mode
+    " Toggle 
     nmap <silent> <LocalLeader>bm <Plug>(lldb_set_breakpoint)
 
     nnoremap <silent> <Plug>(lldb_run)            :call lldb#operate#run()<CR>
@@ -21,7 +21,7 @@ function! lldb#init()
 
 
     command! -nargs=1 -complete=file LLTarget   call lldb#operate#target(<q-args>)
-    " command! -nargs=1 -complete=file LLStart    call lldb#operate#start(<q-args>)
+    " command! -nargs=1 -complete=file LLstart    call lldb#operate#start(<q-args>)
     command! -nargs=1 -complete=file LLKill     call lldb#operate#kill()
     command! -nargs=0                LLStop     call lldb#operate#stop()
 
