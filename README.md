@@ -4,6 +4,8 @@
 This plugin is created with vim script without python library. <br>
 That's because recompiling LLDB does not work in MacOS.
 
+
+
 ## Usage
 
 ```
@@ -60,3 +62,4 @@ That's because recompiling LLDB does not work in MacOS.
 - step
 - backtrace
 
+- シンボリックなパスでコンパイルされたファイルのデバッグをする時、ブレークポイントを設定できない問題
