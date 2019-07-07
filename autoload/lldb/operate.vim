@@ -5,6 +5,8 @@ function! lldb#operate#init()
     let s:job_queue = []
     let s:output_msg = []
 
+    let s:run_args = ''
+
     let s:start_bufname = ''
     let s:temp_bufname = ''
 
@@ -34,8 +36,12 @@ function! lldb#operate#init()
     endfor
 endfunction
 
-function! lldb#operate#start(target) abort
+function! lldb#operate#start(...) abort
     let s:start_bufname = bufname('%')
+
+    let l:target_list = a:000
+    let l:target = l:target_list[0]
+    let s:run_args = l:target_list[1:-1]
 
     if g:lldb#ui#created == 0
         call lldb#ui#create_panes()
@@ -43,12 +49,16 @@ function! lldb#operate#start(target) abort
     endif
     let s:job_queue = ['start']
 
-    let s:job = jobstart(['lldb', '--no-use-colors', a:target], extend({'shell': 'lldb'}, s:callbacks))
+    let l:target_path = fnamemodify(l:target,':p')
+
+    let s:job = jobstart(['which', 'lldb'], extend({'shell': 'which'}, s:callbacks))
+    let s:job = jobstart(['lldb', '--no-use-colors', l:target_path], extend({'shell': 'lldb'}, s:callbacks))
 endfunction
 
 function! lldb#operate#stop() abort
     let s:job_queue = ['stop']
     let s:temp_bufname = bufname('%')
+    call lldb#sign#clean()
     call lldb#sign#zero()
     call jobstop(s:job)
 endfunction
@@ -61,14 +71,15 @@ function! lldb#operate#run() abort
         if g:lldb#operate#is_breakpoints == v:true
             call extend(s:job_queue, s:join_jobs)
         endif
-        call lldb#operate#send('run')
+        let l:run_command = 'run ' . join(s:run_args, ' ')
+        call lldb#operate#send(l:run_command)
     endif
     echomsg 'Set Running target ' . string(s:set_running_target)
-    echomsg "Running target"
+    echomsg 'Running target'
 endfunction
 
 function! lldb#operate#send(cmd) abort
-    echomsg "send cmd: " . a:cmd
+    echomsg 'send cmd: ' . a:cmd
     call chansend(s:job, a:cmd . "\n")
 endfunction
 
@@ -126,8 +137,8 @@ endfunction
 function! s:on_event(job_id, data, event) dict abort
     let l:str = []
 
-    if a:event == 'exit'
-        call s:output_buffer('stop', "***** exit ******")
+    if a:event ==# 'exit'
+        call s:output_buffer('stop', '***** exit ******')
         echomsg 'exit event'
         call lldb#sign#reset()
         return 0
@@ -246,7 +257,7 @@ function! s:check_done(type, msg) abort
     elseif a:type ==# 'continue'
         let l:ret = s:check_continue_done(a:msg)
     endif
-    echomsg "check done(" . l:ret . ")"
+    echomsg 'check done(' . l:ret . ')'
 
     return eval(l:ret == 1)
 endfunction
@@ -265,13 +276,14 @@ function! s:check_start_done(msg) abort
 endfunction
 
 function! s:check_run_done(msg) abort
-    if g:lldb#operate#is_breakpoints == v:false
-        echomsg eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
-        return eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
-    else
-        echomsg eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
-        return eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
-    endif
+    " if g:lldb#operate#is_breakpoints == v:false
+    "     echomsg eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
+    "     return eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
+    " else
+    "     echomsg eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
+    "     return eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
+    " endif
+    return eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped') || eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
     return 0
 endfunction
 
@@ -284,7 +296,8 @@ function! s:check_variables_done(msg) abort
 endfunction
 
 function! s:check_breakpoints_done(msg) abort
-    return eval(a:msg[-1] =~# '.* where = .*') || eval(a:msg[-1] =~# 'No breakpoints .*')
+    echomsg a:msg[-1]
+    return eval(a:msg[-1] =~# '.* where = .*') || eval(a:msg[-1] =~# 'No breakpoints .*') || eval(a:msg[-1] =~# '.*file.*')
 endfunction
 
 function! s:check_next_done(msg) abort
