@@ -1,3 +1,4 @@
+scriptencoding utf-8
 " TODO initialize global variables
 "
 function! lldb#init()
@@ -8,7 +9,7 @@ function! lldb#init()
     nmap <silent> <LocalLeader>bs <Plug>(lldb_step)
     nmap <silent> <LocalLeader>bc <Plug>(lldb_continue)
 
-    " Toggle 
+    " Toggle
     nmap <silent> <LocalLeader>bm <Plug>(lldb_set_breakpoint)
 
     nnoremap <silent> <Plug>(lldb_run)            :call lldb#operate#run()<CR>
@@ -21,6 +22,7 @@ function! lldb#init()
 
 
     command! -nargs=1 -complete=file LLTarget   call lldb#operate#target(<q-args>)
+    " TODO runで引数を取れるようにする
     " command! -nargs=1 -complete=file LLstart    call lldb#operate#start(<q-args>)
     command! -nargs=1 -complete=file LLKill     call lldb#operate#kill()
     command! -nargs=0                LLStop     call lldb#operate#stop()
@@ -28,7 +30,11 @@ function! lldb#init()
     command! -nargs=0                LLCleanBreakPoint  call lldb#sign#clean()
     command! -nargs=0 -range         LLSetBreakPoint    call lldb#sign#bp_set(expand("%:p"), <line1>)
 
+    " TODO ブレークポイントで停止中に、配列の中身を見れるようにする
+    " :LLSelectVariable  -> fr v hoge[0] みたいな
+    " hoge[0]は引数で取れるようにする
+
     " test command
-    command! -nargs=0 -complete=file LLStart    call lldb#operate#start('test')
+    command! -nargs=+ -complete=file LLStart    call lldb#operate#start(<f-args>)
 
 endfunction
