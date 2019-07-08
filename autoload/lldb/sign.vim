@@ -1,17 +1,22 @@
+scriptencoding utf-8
+if exists('g:loaded_lldb_sign_autoload') || !has('nvim')
+    finish
+endif
+let g:loaded_lldb_sign_autoload= 1
 
-" let s:sign_bp_name
-" let s:sign_pc_sel_name
-" let s:sign_pc_unsel_name
 function! lldb#sign#init()
 
     let s:bp_symbol = get(g:, 'lldb#bp_symbol', '>>')
     let s:pc_symbol = get(g:, 'lldb#pc_symbol', '>>')
 
-    highlight default link LLBreakpointSign Text
+    highlight default BreakPointSign cterm=bold gui=bold ctermfg=221 guifg=#fac863
+    highlight default PCSign  cterm=bold gui=bold ctermfg=203 guifg=#ec5f67
+
+    highlight default link LLBreakpointSign BreakPointSign
     highlight default link LLBreakpointLine DiffText
-    highlight default link LLUnselectedPCSign NonType
+    highlight default link LLUnselectedPCSign NonText
     highlight default link LLUnselectedPCLine DiffChange
-    highlight default link LLSelectedPCSign Debug
+    highlight default link LLSelectedPCSign PCSign
     highlight default link LLSelectedPCLine DiffText
 
     execute 'sign define llsign_bp text=' . s:bp_symbol . ' texthl=LLBreakpointSign linehl=LLBreakpointLine'
