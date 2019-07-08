@@ -1,40 +1,66 @@
 scriptencoding utf-8
-" TODO initialize global variables
-"
-function! lldb#init()
-    nmap <silent> <LocalLeader>br <Plug>(lldb_run)
-    nmap <silent> <LocalLeader>bt <Plug>(lldb_backtrace)
-    nmap <silent> <LocalLeader>bp <Plug>(lldb_breakpoints)
-    nmap <silent> <LocalLeader>bn <Plug>(lldb_next)
-    nmap <silent> <LocalLeader>bs <Plug>(lldb_step)
-    nmap <silent> <LocalLeader>bc <Plug>(lldb_continue)
-
-    " Toggle
-    nmap <silent> <LocalLeader>bm <Plug>(lldb_set_breakpoint)
-
-    nnoremap <silent> <Plug>(lldb_run)            :call lldb#operate#run()<CR>
-    nnoremap <silent> <Plug>(lldb_backtrace)      :call lldb#operate#backtrace()<CR>
-    nnoremap <silent> <Plug>(lldb_breakpoints)    :call lldb#operate#breakpoints()<CR>
-    nnoremap <silent> <Plug>(lldb_next)           :call lldb#operate#next()<CR>
-    nnoremap <silent> <Plug>(lldb_step)           :call lldb#operate#step()<CR>
-    nnoremap <silent> <Plug>(lldb_continue)       :call lldb#operate#continue()<CR>
-    nnoremap <silent> <Plug>(lldb_set_breakpoint) :LLSetBreakPoint<CR>
 
 
-    command! -nargs=1 -complete=file LLTarget   call lldb#operate#target(<q-args>)
-    " TODO runで引数を取れるようにする
-    " command! -nargs=1 -complete=file LLstart    call lldb#operate#start(<q-args>)
-    command! -nargs=1 -complete=file LLKill     call lldb#operate#kill()
-    command! -nargs=0                LLStop     call lldb#operate#stop()
+function! lldb#init() abort
+    runtime lib/ui.vim
+ endfunction
 
-    command! -nargs=0                LLCleanBreakPoint  call lldb#sign#clean()
-    command! -nargs=0 -range         LLSetBreakPoint    call lldb#sign#bp_set(expand("%:p"), <line1>)
-
-    " TODO ブレークポイントで停止中に、配列の中身を見れるようにする
-    " :LLSelectVariable  -> fr v hoge[0] みたいな
-    " hoge[0]は引数で取れるようにする
-
-    " test command
-    command! -nargs=+ -complete=file LLStart    call lldb#operate#start(<f-args>)
+function! lldb#run_command(command) abort
 
 endfunction
+
+function! lldb#start(target) abort
+   let s:ui = g:lldb_ui.new()
+    " let g:lldb_sign.new()
+    " let g:lldb_operate.New()
+endfunction
+
+function! lldb#stop() abort
+
+endfunction
+
+
+function! lldb#kill() abort
+
+endfunction
+
+
+" TODO initialize global variables
+"
+" function! lldb#init()
+"     nmap <silent> <LocalLeader>br <Plug>(lldb_run)
+"     nmap <silent> <LocalLeader>bt <Plug>(lldb_backtrace)
+"     nmap <silent> <LocalLeader>bp <Plug>(lldb_breakpoints)
+"     nmap <silent> <LocalLeader>bn <Plug>(lldb_next)
+"     nmap <silent> <LocalLeader>bs <Plug>(lldb_step)
+"     nmap <silent> <LocalLeader>bc <Plug>(lldb_continue)
+
+"     " Toggle
+"     nmap <silent> <LocalLeader>bm <Plug>(lldb_set_breakpoint)
+
+"     nnoremap <silent> <Plug>(lldb_run)            :call lldb#operate#run()<CR>
+"     nnoremap <silent> <Plug>(lldb_backtrace)      :call lldb#operate#backtrace()<CR>
+"     nnoremap <silent> <Plug>(lldb_breakpoints)    :call lldb#operate#breakpoints()<CR>
+"     nnoremap <silent> <Plug>(lldb_next)           :call lldb#operate#next()<CR>
+"     nnoremap <silent> <Plug>(lldb_step)           :call lldb#operate#step()<CR>
+"     nnoremap <silent> <Plug>(lldb_continue)       :call lldb#operate#continue()<CR>
+"     nnoremap <silent> <Plug>(lldb_set_breakpoint) :LLSetBreakPoint<CR>
+
+
+"     command! -nargs=1 -complete=file LLTarget   call lldb#operate#target(<q-args>)
+"     " TODO runで引数を取れるようにする
+"     " command! -nargs=1 -complete=file LLstart    call lldb#operate#start(<q-args>)
+"     command! -nargs=1 -complete=file LLKill     call lldb#operate#kill()
+"     command! -nargs=0                LLStop     call lldb#operate#stop()
+
+"     command! -nargs=0                LLCleanBreakPoint  call lldb#sign#clean()
+"     command! -nargs=0 -range         LLSetBreakPoint    call lldb#sign#bp_set(expand("%:p"), <line1>)
+
+"     " TODO ブレークポイントで停止中に、配列の中身を見れるようにする
+"     " :LLSelectVariable  -> fr v hoge[0] みたいな
+"     " hoge[0]は引数で取れるようにする
+
+"     " test command
+"     command! -nargs=+ -complete=file LLStart    call lldb#operate#start(<f-args>)
+
+" endfunction
