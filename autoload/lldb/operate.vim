@@ -1,3 +1,10 @@
+scriptencoding utf-8
+if exists('g:loaded_lldb_operate_autoload') || !has('nvim')
+    finish
+endif
+let g:loaded_lldb_operate_autoload= 1
+
+
 function! lldb#operate#init()
     let g:lldb#operate#buftype = ''
     let g:lldb#operate#is_breakpoints = v:false
@@ -90,6 +97,11 @@ endfunction
 
 function! lldb#operate#variables() abort
     call lldb#operate#send('frame variable')
+endfunction
+
+function! lldb#operate#select_variables(value) abort
+    let s:job_queue = ['frame variable']
+    call lldb#operate#send('frame variable ' . a:value)
 endfunction
 
 function! lldb#operate#breakpoints() abort
