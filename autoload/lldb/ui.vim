@@ -1,3 +1,8 @@
+scriptencoding utf-8
+if exists('g:loaded_lldb_ui_autoload') || !has('nvim')
+    finish
+endif
+let g:loaded_lldb_ui_autoload= 1
 
 function! lldb#ui#init()
     " let l:default_panes = ['variables', 'watchpoints', 'threads', 'breakpoints', 'lldb']
@@ -41,7 +46,7 @@ function! s:buf_options()
     setlocal noswapfile
     setlocal buftype=nofile
     " setlocal bufhidden=hide
-    setlocal nowrap
+    setlocal wrap
     setlocal foldcolumn=0
     setlocal foldmethod=manual
     setlocal nofoldenable
