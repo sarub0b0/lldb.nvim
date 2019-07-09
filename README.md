@@ -10,7 +10,7 @@ That's because recompiling LLDB does not work in MacOS.
 
 ```
 # Init
-:LLStart <debug target>
+:LLStart <debug target> <args>
 ```
 
 ## Key bind
@@ -18,13 +18,16 @@ That's because recompiling LLDB does not work in MacOS.
     nmap <silent> <LocalLeader>br <Plug>(lldb_run)
     nmap <silent> <LocalLeader>bt <Plug>(lldb_backtrace)
     nmap <silent> <LocalLeader>bp <Plug>(lldb_breakpoints)
-    " TODO map <silent> <LocalLeader>bn <Plug>(lldb_next)
-    " TODO nmap <silent> <LocalLeader>bs <Plug>(lldb_step)
+    nmap <silent> <LocalLeader>bn <Plug>(lldb_next)
+    nmap <silent> <LocalLeader>bs <Plug>(lldb_step)
     nmap <silent> <LocalLeader>bc <Plug>(lldb_continue)
 
     " Toggle mode
     nmap <silent> <LocalLeader>bm <Plug>(lldb_set_breakpoint)
 ```
+
+## Screenshot
+![screenshot](https://github.com/sarub0b0/lldb.nvim/blob/images/screenshot.jpg?raw=true)
 
 ## command & function
 ```
@@ -52,17 +55,16 @@ That's because recompiling LLDB does not work in MacOS.
 - run
 - breakpoints
 - continue
-- stop
+- next
+- step
 - thread list
 - frame variable
+- stop
 
 ## TODO
 - watchpoint
-- next
-- step
 - backtrace
 
 - シンボリックなパスでコンパイルされたファイルのデバッグをする時、ブレークポイントを設定できない問題
 
-## Screenshot
-![screenshot](https://github.com/sarub0b0/lldb.nvim/blob/images/screenshot.jpg?raw=true)
+
