@@ -2,7 +2,7 @@ scriptencoding utf-8
 if exists('g:loaded_lldb_sign_autoload') || !has('nvim')
     finish
 endif
-let g:loaded_lldb_sign_autoload= 1
+let g:loaded_lldb_sign_autoload = 1
 
 function! lldb#sign#init()
 

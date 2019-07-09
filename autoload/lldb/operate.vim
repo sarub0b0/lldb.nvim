@@ -2,7 +2,7 @@ scriptencoding utf-8
 if exists('g:loaded_lldb_operate_autoload') || !has('nvim')
     finish
 endif
-let g:loaded_lldb_operate_autoload= 1
+let g:loaded_lldb_operate_autoload = 1
 
 
 function! lldb#operate#init()
@@ -27,6 +27,7 @@ function! lldb#operate#init()
                 \ 'thread list'     : 'threads',
                 \ 'breakpoint list' : 'breakpoints',
                 \ 'next'            : 'next',
+                \ 'step'            : 'step',
                 \ 'continue'        : 'continue',
                 \ 'backtrace'       : 'backtrace'
                 \ }
@@ -143,9 +144,6 @@ function! lldb#operate#continue() abort
     call lldb#operate#send('continue')
 endfunction
 
-function! s:update()
-endfunction
-
 function! s:on_event(job_id, data, event) dict abort
     let l:str = []
 
@@ -248,6 +246,7 @@ function! s:check_buftype_lldb(type)
                 \ a:type ==# 'run'       ||
                 \ a:type ==# 'continue'  ||
                 \ a:type ==# 'backtrace' ||
+                \ a:type ==# 'step'      ||
                 \ a:type ==# 'next'
                 \ )
 endfunction
@@ -266,6 +265,8 @@ function! s:check_done(type, msg) abort
         let l:ret = s:check_breakpoints_done(a:msg)
     elseif a:type ==# 'next'
         let l:ret = s:check_next_done(a:msg)
+    elseif a:type ==# 'step'
+        let l:ret = s:check_step_done(a:msg)
     elseif a:type ==# 'continue'
         let l:ret = s:check_continue_done(a:msg)
     endif
@@ -284,7 +285,9 @@ function! s:post_process(buftype) abort
 endfunction
 
 function! s:check_start_done(msg) abort
-    return eval(a:msg[-1] =~# 'error: unable to find .*' || a:msg[-1] =~# 'Current executable set to .*')
+    return eval(
+                \ a:msg[-1] =~# 'error: unable to find .*' ||
+                \ a:msg[-1] =~# 'Current executable set to .*')
 endfunction
 
 function! s:check_run_done(msg) abort
@@ -295,7 +298,10 @@ function! s:check_run_done(msg) abort
     "     echomsg eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
     "     return eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
     " endif
-    return eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped') || eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
+    return eval(
+                \ a:msg[-1] =~# 'Target [0-9]*: (.*) stopped' ||
+                \ a:msg[-1] =~# 'Process [0-9]* exited .*'
+                \ )
     return 0
 endfunction
 
@@ -309,16 +315,27 @@ endfunction
 
 function! s:check_breakpoints_done(msg) abort
     echomsg a:msg[-1]
-    return eval(a:msg[-1] =~# '.* where = .*') || eval(a:msg[-1] =~# 'No breakpoints .*') || eval(a:msg[-1] =~# '.*file.*')
+    return eval(
+                \ a:msg[-1] =~# '.* where = .*' ||
+                \ a:msg[-1] =~# 'No breakpoints .*' ||
+                \ a:msg[-1] =~# '.*file.*'
+                \ )
 endfunction
 
 function! s:check_next_done(msg) abort
     return eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
 endfunction
 
+function! s:check_step_done(msg) abort
+    return eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
+endfunction
+
 function! s:check_continue_done(msg) abort
-    if eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped') ||
-                \ eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
+    if eval(
+                \ a:msg[-1] =~# 'Target [0-9]*: (.*) stopped' ||
+                \ a:msg[-1] =~# 'Process [0-9]* exited .*'
+                \ )
+
         return 1
     endif
     return 0

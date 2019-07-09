@@ -2,10 +2,9 @@ scriptencoding utf-8
 if exists('g:loaded_lldb_ui_autoload') || !has('nvim')
     finish
 endif
-let g:loaded_lldb_ui_autoload= 1
+let g:loaded_lldb_ui_autoload = 1
 
 function! lldb#ui#init()
-    " let l:default_panes = ['variables', 'watchpoints', 'threads', 'breakpoints', 'lldb']
     let l:default_panes = ['breakpoints', 'variables', 'lldb']
     let g:lldb#ui#default_panes = get(g:, 'lldb#ui#default_panes', l:default_panes)
     let g:lldb#ui#created = 0
@@ -17,9 +16,10 @@ function! lldb#ui#create_panes()
     let g:lldb#ui#created = 1
 endfunction
 
-function! lldb#ui#buf_clean(bufname)
+" function! lldb#ui#buf_clean(bufname)
 
-endfunction
+" endfunction
+
 
 function! s:create_panes()
     let l:panes = g:lldb#ui#default_panes[1:]
