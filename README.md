@@ -63,3 +63,6 @@ That's because recompiling LLDB does not work in MacOS.
 - backtrace
 
 - シンボリックなパスでコンパイルされたファイルのデバッグをする時、ブレークポイントを設定できない問題
+
+## Screenshot
+![screenshot](https://github.com/sarub0b0/lldb.nvim/blob/images/screenshot.jpg?raw=true)
