@@ -13,7 +13,7 @@ That's because recompiling LLDB does not work in MacOS.
 :LLStart <debug target> <args>
 ```
 
-## Key bind
+## Keymap
 ```
     nmap <silent> <LocalLeader>br <Plug>(lldb_run)
     nmap <silent> <LocalLeader>bt <Plug>(lldb_backtrace)
