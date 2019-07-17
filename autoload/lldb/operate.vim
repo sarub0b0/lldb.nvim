@@ -214,6 +214,16 @@ function! s:output_buffer(type, msg) abort
     if l:buftype ==# 'threads'
         let l:tmp = split(a:msg[-1], ',')
         let l:output_msg = substitute(l:tmp[0], 'tid.*', '', 'g') . substitute(l:tmp[1], '^ 0x\([0-9]\|[a-z]\)\+ ', '','g')
+    elseif l:buftype ==# 'breakpoints'
+        let l:tmp = []
+        for l:str in a:msg
+            " l:tmp += substitute(l:str, '', '', 'g')
+            if l:str =~# '^[0-9]\+:\ file\ =\ .*'
+                let l:tmp = add(l:tmp, substitute(l:str, ',\ exact.*', '', ''))
+                echomsg string(l:tmp)
+            endif
+        endfor
+        let l:output_msg = l:tmp
     else
         let l:output_msg = a:msg
     endif
@@ -314,7 +324,6 @@ function! s:check_variables_done(msg) abort
 endfunction
 
 function! s:check_breakpoints_done(msg) abort
-    echomsg a:msg[-1]
     return eval(
                 \ a:msg[-1] =~# '.* where = .*' ||
                 \ a:msg[-1] =~# 'No breakpoints .*' ||

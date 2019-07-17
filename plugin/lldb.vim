@@ -34,5 +34,7 @@ command! -nargs=0                LLSetBreakPoint    call lldb#sign#bp_set(expand
 
 command! -nargs=1                LLSelectVariable   call lldb#operate#select_variables(<q-args>)
 
+command! -nargs=0                LLAllReset         call lldb#all_reset()
+
 
 call lldb#init()
