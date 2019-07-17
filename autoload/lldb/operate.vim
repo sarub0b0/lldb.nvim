@@ -4,6 +4,7 @@ if exists('g:loaded_lldb_operate_autoload') || !has('nvim')
 endif
 let g:loaded_lldb_operate_autoload = 1
 
+" TODO echomsgの整理。INFO・WARN・DEBUGなどなど
 
 function! lldb#operate#init()
     let g:lldb#operate#buftype = ''

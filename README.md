@@ -66,5 +66,6 @@ That's because recompiling LLDB does not work in MacOS.
 - backtrace
 
 - シンボリックなパスでコンパイルされたファイルのデバッグをする時、ブレークポイントを設定できない問題
-
+- echomsgの整理。INFO・WARN・DEBUGなどなど
+- lldb以外のバッファにsyntax highlight
 
