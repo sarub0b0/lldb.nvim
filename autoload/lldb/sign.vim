@@ -42,7 +42,7 @@ function! lldb#sign#bp_set(file, line)
         let l:file = p['file']
         " let l:file = split(p['file'], '/')
         " let l:file = l:file[-1]
-        echomsg l:id . ' ' . l:line . ' ' .  l:file
+        call lldb#debug#debug(l:id . ' ' . l:line . ' ' .  l:file)
         if l:file == a:file && l:line == a:line
             execute 'sign unplace ' . l:id
             let l:is_equal = v:true
@@ -52,9 +52,9 @@ function! lldb#sign#bp_set(file, line)
         let l:rm_idx += 1
     endfor
     if l:is_equal
-        echomsg string(s:bp_list)
+        call lldb#debug#debug(string(s:bp_list))
         call remove(s:bp_list, l:rm_idx)
-        echomsg string(s:bp_list)
+        call lldb#debug#debug(string(s:bp_list))
         let s:bp_counter -= 1
         call lldb#operate#send('breakpoint delete ' . l:rm_id)
         call lldb#operate#breakpoints()
@@ -67,7 +67,7 @@ function! lldb#sign#bp_set(file, line)
         let s:bp_place_id += 1
         call lldb#operate#send('breakpoint set -f ' . a:file . ' -l ' . a:line)
         call lldb#operate#breakpoints()
-        echomsg string(s:bp_list)
+        call lldb#debug#debug(string(s:bp_list))
         let s:bp_counter += 1
     endif
     if 0 < s:bp_counter
@@ -109,25 +109,24 @@ function! lldb#sign#check_pc(msg)
     if l:param == []
         return 0
     endif
-    echomsg string(l:param)
-    " ['test.c', '7']
+    call lldb#debug#debug(string(l:param))
 
     let l:id = -1
     let l:line = ''
     let l:file = ''
-    echomsg string(s:bp_list)
+    call lldb#debug#debug(string(s:bp_list))
     for p in s:bp_list
         let l:id = p['id']
         let l:line = p['line']
         let l:file = split(p['file'], '/')
         let l:file = l:file[-1]
-        echomsg l:id . ' ' . l:line . ' ' .  l:file
-        echomsg string(l:param)
+        call lldb#debug#debug(l:id . ' ' . l:line . ' ' .  l:file)
+        call lldb#debug#debug(string(l:param))
         if l:file == l:param[0] && l:line == l:param[1]
-            echomsg 'pc_sel'
+            call lldb#debug#debug('pc_sel')
             execute 'sign place ' . l:id . ' line=' . l:line . ' name=llsign_pc_sel file=' . l:file
         else
-            echomsg 'pc_unsel'
+            call lldb#debug#debug('pc_unsel')
             execute 'sign place ' . l:id . ' line=' . l:line . ' name=llsign_pc_unsel file=' . l:file
         endif
     endfor

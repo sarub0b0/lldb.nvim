@@ -4,8 +4,6 @@ if exists('g:loaded_lldb_operate_autoload') || !has('nvim')
 endif
 let g:loaded_lldb_operate_autoload = 1
 
-" TODO echomsgの整理。INFO・WARN・DEBUGなどなど
-
 function! lldb#operate#init()
     let g:lldb#operate#buftype = ''
     let g:lldb#operate#is_breakpoints = v:false
@@ -83,12 +81,11 @@ function! lldb#operate#run() abort
         let l:run_command = 'run ' . join(s:run_args, ' ')
         call lldb#operate#send(l:run_command)
     endif
-    echomsg 'Set Running target ' . string(s:set_running_target)
-    echomsg 'Running target'
+    call lldb#debug#info('Set Running target ' . string(s:set_running_target))
 endfunction
 
 function! lldb#operate#send(cmd) abort
-    echomsg 'send cmd: ' . a:cmd
+    call lldb#debug#info('Send cmd: ' . a:cmd)
     call chansend(s:job, a:cmd . "\n")
 endfunction
 
@@ -148,22 +145,21 @@ endfunction
 function! s:on_event(job_id, data, event) dict abort
     let l:str = []
 
-    if a:event ==# 'exit'
+    let s:running_type = s:job_type_dict[s:job_queue[0]]
+    if a:event ==# 'exit' && s:running_type !=# 'start'
+        call lldb#debug#info('Exit event')
         call s:output_buffer('stop', '***** exit ******')
-        echomsg 'exit event'
         call lldb#sign#reset()
         return 0
     endif
 
+    call lldb#debug#debug(string(a:data))
 
-    echomsg string(a:data)
     let l:str = s:remove_empty(a:data)
 
     call extend(s:output_msg, l:str)
-    " echomsg a:event . string(s:output_msg)
 
     if 0 < len(l:str)
-        let s:running_type = s:job_type_dict[s:job_queue[0]]
         let l:ret_check =  s:check_done(s:running_type, l:str)
         if l:ret_check == 1
 
@@ -179,19 +175,17 @@ function! s:on_event(job_id, data, event) dict abort
             call s:output_buffer(s:running_type, s:output_msg)
 
             if s:job_queue == []
-                echomsg 'no job'
+                call lldb#debug#info('No job')
                 return 0
             endif
 
             call remove(s:job_queue, 0)
             if len(s:job_queue) == 0
-                " if s:running_type ==# 'run'
-                " endif
-                echomsg 'all job done'
-                echomsg 'Running target? ' . s:set_running_target
+                call lldb#debug#info('All job done')
+                call lldb#debug#info('Running target = ' . s:set_running_target)
                 return 0
             endif
-            echomsg 'send ' . string(s:job_queue[0])
+            call lldb#debug#info('Send ' . string(s:job_queue[0]))
             let s:running_type = s:job_type_dict[s:job_queue[0]]
             call lldb#operate#send(s:job_queue[0])
         endif
@@ -206,22 +200,22 @@ function! s:output_buffer(type, msg) abort
         call s:buffer_clean(l:buftype)
     endif
 
-    let l:move_window = "execute bufwinnr(bufnr('" . l:buftype . "')).'wincmd w'"
-    execute l:move_window
+    execute "execute bufwinnr(bufnr('" . l:buftype . "')).'wincmd w'"
 
     setlocal modifiable
 
     let l:output_msg = ''
     if l:buftype ==# 'threads'
         let l:tmp = split(a:msg[-1], ',')
-        let l:output_msg = substitute(l:tmp[0], 'tid.*', '', 'g') . substitute(l:tmp[1], '^ 0x\([0-9]\|[a-z]\)\+ ', '','g')
+        let l:output_msg = substitute(l:tmp[0], 'tid.*', '', 'g')
+                    \ . substitute(l:tmp[1], '^ 0x\([0-9]\|[a-z]\)\+ ', '','g')
+
     elseif l:buftype ==# 'breakpoints'
         let l:tmp = []
         for l:str in a:msg
-            " l:tmp += substitute(l:str, '', '', 'g')
             if l:str =~# '^[0-9]\+:\ file\ =\ .*'
                 let l:tmp = add(l:tmp, substitute(l:str, ',\ exact.*', '', ''))
-                echomsg string(l:tmp)
+                call lldb#debug#debug(string(l:tmp))
             endif
         endfor
         let l:output_msg = l:tmp
@@ -229,25 +223,30 @@ function! s:output_buffer(type, msg) abort
         let l:output_msg = a:msg
     endif
 
-    echomsg string(l:output_msg)
+    call lldb#debug#debug(string(l:output_msg))
+    let l:output_msg = s:remove_command_line(l:buftype, l:output_msg)
     call append('$', l:output_msg)
     call s:post_process(l:buftype)
 
     let s:output_msg = []
 
+    let l:bufname = ''
+    if a:type ==# 'start'
+        execute '2d'
+        execute 'g/^$/d'
+        let l:bufname = s:start_bufname
+    else
+        let l:bufname = s:temp_bufname
+    endif
+
     setlocal nomodifiable
 
-    if a:type ==# 'start'
-        call s:move_bufname(s:start_bufname)
-    else
-        call s:move_bufname(s:temp_bufname)
-    endif
+    call s:move_bufname(l:bufname)
 
 endfunction
 
 function! s:move_bufname(bufname) abort
     execute "execute bufnr(bufname('" . a:bufname . "')).'wincmd w'"
-    echomsg "execute \"execute bufnr(bufname('" . a:bufname . "')).'wincmd w'\""
 endfunction
 
 function! s:check_buftype_lldb(type)
@@ -281,7 +280,7 @@ function! s:check_done(type, msg) abort
     elseif a:type ==# 'continue'
         let l:ret = s:check_continue_done(a:msg)
     endif
-    echomsg 'check done(' . l:ret . ')'
+    call lldb#debug#debug('check done(' . l:ret . ')')
 
     return eval(l:ret == 1)
 endfunction
@@ -289,10 +288,24 @@ endfunction
 function! s:post_process(buftype) abort
     call s:buffer_move(a:buftype)
     if a:buftype !=# 'lldb'
-        execute 'g/(lldb)/d'
+        execute '1d'
+    else
+        execute '%s///ge'
     endif
-    execute 'g/^$/d'
     execute '$'
+endfunction
+function!  s:remove_command_line(buftype, msg) abort
+    let l:out = a:msg
+    if len(a:msg) == 0
+        return a:msg
+    endif
+    if a:buftype !=# 'lldb'
+        if a:msg[0] =~# '(lldb)'
+            let l:out = a:msg[1:-1]
+        endif
+    endif
+    call lldb#debug#debug(string(l:out))
+    return l:out
 endfunction
 
 function! s:check_start_done(msg) abort
@@ -302,13 +315,6 @@ function! s:check_start_done(msg) abort
 endfunction
 
 function! s:check_run_done(msg) abort
-    " if g:lldb#operate#is_breakpoints == v:false
-    "     echomsg eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
-    "     return eval(a:msg[-1] =~# 'Process [0-9]* exited .*')
-    " else
-    "     echomsg eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
-    "     return eval(a:msg[-1] =~# 'Target [0-9]*: (.*) stopped')
-    " endif
     return eval(
                 \ a:msg[-1] =~# 'Target [0-9]*: (.*) stopped' ||
                 \ a:msg[-1] =~# 'Process [0-9]* exited .*'

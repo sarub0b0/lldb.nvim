@@ -5,6 +5,9 @@ if exists('g:loaded_lldb') || !has('nvim')
 endif
 let g:loaded_lldb = 1
 
+" Enable debug message: 1 -> enable, 0 -> disable
+let g:lldb#debug#enable = 1
+
 nmap <silent> <LocalLeader>br <Plug>(lldb_run)
 nmap <silent> <LocalLeader>bt <Plug>(lldb_backtrace)
 nmap <silent> <LocalLeader>bp <Plug>(lldb_breakpoints)
@@ -35,6 +38,5 @@ command! -nargs=0                LLSetBreakPoint    call lldb#sign#bp_set(expand
 command! -nargs=1                LLSelectVariable   call lldb#operate#select_variables(<q-args>)
 
 command! -nargs=0                LLAllReset         call lldb#all_reset()
-
 
 call lldb#init()
