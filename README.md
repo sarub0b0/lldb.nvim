@@ -6,8 +6,22 @@ That's because recompiling LLDB does not work in MacOS.
 ## Usage
 
 ```
-# Init
+" lldb start
 :LLStart <debug target> <args>
+
+" lldb stop
+:LLStop
+
+" lldb finish. jobstop and lldb buffer delete.
+:LLFinish
+
+------------------------------------------
+" Remove all breakpoints.
+:LLCleanBreakPoint
+
+" Show variable 
+" ex. (lldb) frame variable argv[1]
+:LLSelectVariable argv[1]
 ```
 
 ## Keymap
@@ -26,28 +40,17 @@ nmap <silent> <LocalLeader>bm <Plug>(lldb_set_breakpoint)
 ## Screenshot
 ![screenshot](https://github.com/sarub0b0/lldb.nvim/blob/images/screenshot.jpg?raw=true)
 
-## command & function
+## option
 ```
-" Enable debug message: 1 -> enable, 0 -> disable
+" Debug message: 1 -> enable, 0 -> disable
 let g:lldb#debug#enable = 1
 
-nnoremap <silent> <Plug>(lldb_run)            :call lldb#operate#run()<CR>
-nnoremap <silent> <Plug>(lldb_backtrace)      :call lldb#operate#backtrace()<CR>
-nnoremap <silent> <Plug>(lldb_breakpoints)    :call lldb#operate#breakpoints()<CR>
-nnoremap <silent> <Plug>(lldb_next)           :call lldb#operate#next()<CR>
-nnoremap <silent> <Plug>(lldb_step)           :call lldb#operate#step()<CR>
-nnoremap <silent> <Plug>(lldb_continue)       :call lldb#operate#continue()<CR>
-nnoremap <silent> <Plug>(lldb_set_breakpoint) :LLSetBreakPoint<CR>
+" Sign-symbol
+let g:lldb#sign#bp_symbol = '>>'    " set breakpoint
+let g:lldb#sign#pc_symbol = '>>'    " stop breakpoints
 
-command! -nargs=0                LLCleanBreakPoint  call lldb#sign#clean()
-command! -nargs=0                LLSetBreakPoint    call lldb#sign#bp_set(expand("%:p"), <line1>)
-command! -nargs=1                LLSelectVariable   call lldb#operate#select_variables(<q-args>)
-
-command! -nargs=+ -complete=file LLStart    call lldb#operate#start(<f-args>)
-command! -nargs=0                LLStop     call lldb#operate#stop()
-
-command! -nargs=0                LLFinish   call lldb#operate#finish()
-
+" Create buffer. index[0] bottom -> index[-1] top
+let g:lldb#ui#default_panes = ['breakpoints', 'variables', 'lldb']
 ```
 
 ## Complete
@@ -63,9 +66,5 @@ command! -nargs=0                LLFinish   call lldb#operate#finish()
 ## TODO
 - watchpoint
 - backtrace
-
 - シンボリックなパスでコンパイルされたファイルのデバッグをする時、ブレークポイントを設定できない問題
 - lldb以外のバッファにsyntax highlight
-```
-command! -nargs=0                LLAllReset         call lldb#all_reset()
-```

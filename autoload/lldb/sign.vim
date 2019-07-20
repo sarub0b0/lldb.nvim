@@ -6,8 +6,8 @@ let g:loaded_lldb_sign_autoload = 1
 
 function! lldb#sign#init()
 
-    let s:bp_symbol = get(g:, 'lldb#bp_symbol', '>>')
-    let s:pc_symbol = get(g:, 'lldb#pc_symbol', '>>')
+    let s:bp_symbol = get(g:, 'lldb#sign#bp_symbol', '>>')
+    let s:pc_symbol = get(g:, 'lldb#sign#pc_symbol', '>>')
 
     highlight default BreakPointSign cterm=bold gui=bold ctermfg=221 guifg=#fac863
     highlight default PCSign  cterm=bold gui=bold ctermfg=203 guifg=#ec5f67
