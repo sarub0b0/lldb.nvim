@@ -1,5 +1,5 @@
 scriptencoding utf-8
-if exists('g:loaded_lldb_debug_autoload') || !has('nvim')
+if exists('g:loaded_lldb_debug_autoload')
     finish
 endif
 let g:loaded_lldb_debug_autoload = 1
@@ -25,4 +25,3 @@ endfunction
 function! lldb#debug#err(msg) abort
     echohl ErrorMsg | '[ERR] ' . a:msg | echohl None
 endfunction
-

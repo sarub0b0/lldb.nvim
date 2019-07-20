@@ -1,5 +1,5 @@
 scriptencoding utf-8
-if exists('b:current_syntax') || !has('nvim')
+if exists('b:current_syntax')
     finish
 endif
 

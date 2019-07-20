@@ -1,8 +1,42 @@
 scriptencoding utf-8
-if exists('g:loaded_lldb_operate_autoload') || !has('nvim')
+if exists('g:loaded_lldb_operate_autoload')
     finish
 endif
 let g:loaded_lldb_operate_autoload = 1
+
+let g:job = {}
+
+let g:job = s:job.new()
+
+function! s:job.new()
+    return deepcopy(s:job)
+endfunction
+if has('nvim')
+    function! s:job.start(command, callback)
+        echomsg 'nvim start'
+    endfunction
+
+    function! s:job.stop()
+        echomsg 'nvim stop'
+    endfunction
+
+    function! s:job.send(cmd)
+        echomsg 'nvim send'
+    endfunction
+else
+    function! s:job.start(command, callback)
+        echomsg 'vim start'
+    endfunction
+
+    function! s:job.stop()
+        echomsg 'vim stop'
+
+    endfunction
+
+    function! s:job.send(cmd)
+        echomsg 'vim send'
+    endfunction
+endif
 
 function! lldb#operate#init()
     let g:lldb#operate#buftype = ''

@@ -1,6 +1,6 @@
 scriptencoding utf-8
 
-if exists('g:loaded_lldb') || !has('nvim')
+if exists('g:loaded_lldb')
     finish
 endif
 let g:loaded_lldb = 1
