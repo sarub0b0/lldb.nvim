@@ -1,5 +1,4 @@
 # LLDB NeoVim Frontend
-<!-- ※ Warning: It is not implemented yet. I'm developing this plugin. -->
 
 This plugin is created with vim script without python library. <br>
 That's because recompiling LLDB does not work in MacOS.
@@ -40,15 +39,15 @@ nnoremap <silent> <Plug>(lldb_step)           :call lldb#operate#step()<CR>
 nnoremap <silent> <Plug>(lldb_continue)       :call lldb#operate#continue()<CR>
 nnoremap <silent> <Plug>(lldb_set_breakpoint) :LLSetBreakPoint<CR>
 
-command! -nargs=+ -complete=file LLStart    call lldb#operate#start(<f-args>)
-command! -nargs=1 -complete=file LLKill     call lldb#operate#kill()
-command! -nargs=0                LLStop     call lldb#operate#stop()
-command! -nargs=1 -complete=file LLTarget   call lldb#operate#target(<q-args>)
-
 command! -nargs=0                LLCleanBreakPoint  call lldb#sign#clean()
 command! -nargs=0                LLSetBreakPoint    call lldb#sign#bp_set(expand("%:p"), <line1>)
-
 command! -nargs=1                LLSelectVariable   call lldb#operate#select_variables(<q-args>)
+
+command! -nargs=+ -complete=file LLStart    call lldb#operate#start(<f-args>)
+command! -nargs=0                LLStop     call lldb#operate#stop()
+
+command! -nargs=0                LLFinish   call lldb#operate#finish()
+
 ```
 
 ## Complete
