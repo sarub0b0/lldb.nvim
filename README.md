@@ -40,7 +40,7 @@ nmap <silent> <LocalLeader>bm <Plug>(lldb_set_breakpoint)
 ## Screenshot
 ![screenshot](https://github.com/sarub0b0/lldb.nvim/blob/images/screenshot.jpg?raw=true)
 
-## option
+## Global option
 ```
 " Debug message: 1 -> enable, 0 -> disable
 let g:lldb#debug#enable = 1
