@@ -28,7 +28,8 @@ nnoremap <silent> <Plug>(lldb_set_breakpoint) :LLSetBreakPoint<CR>
 
 
 command! -nargs=+ -complete=file LLStart    call lldb#operate#start(<f-args>)
-command! -nargs=1 -complete=file LLKill     call lldb#operate#kill()
+command! -nargs=0                LLFinish   call lldb#operate#finish()
+
 command! -nargs=0                LLStop     call lldb#operate#stop()
 command! -nargs=1 -complete=file LLTarget   call lldb#operate#target(<q-args>)
 
@@ -36,7 +37,5 @@ command! -nargs=0                LLCleanBreakPoint  call lldb#sign#clean()
 command! -nargs=0                LLSetBreakPoint    call lldb#sign#bp_set(expand("%:p"), <line1>)
 
 command! -nargs=1                LLSelectVariable   call lldb#operate#select_variables(<q-args>)
-
-command! -nargs=0                LLAllReset         call lldb#all_reset()
 
 call lldb#init()

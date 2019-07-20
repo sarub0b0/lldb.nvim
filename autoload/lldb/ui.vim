@@ -10,15 +10,18 @@ function! lldb#ui#init()
     let g:lldb#ui#created = 0
 endfunction
 
+function! lldb#ui#finish() abort
+    for l:pane in g:lldb#ui#default_panes
+        execute 'bdelete! ' . bufnr(bufname(l:pane))
+    endfor
+    let g:lldb#ui#created = 0
+endfunction
+
 function! lldb#ui#create_panes()
     call s:create_panes()
     call s:check_panes()
     let g:lldb#ui#created = 1
 endfunction
-
-" function! lldb#ui#buf_clean(bufname)
-
-" endfunction
 
 
 function! s:create_panes()

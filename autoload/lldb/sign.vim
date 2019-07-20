@@ -88,18 +88,21 @@ function! lldb#sign#reset() abort
 endfunction
 
 function! lldb#sign#clean() abort
-    for p in s:bp_list
-        let l:id = p['id']
-        execute 'sign unplace ' . l:id
-        call lldb#operate#send('breakpoint delete ' . l:id)
-    endfor
-    call lldb#operate#breakpoints()
+    if g:lldb#operate#is_breakpoints == v:true
+        for p in s:bp_list
+            let l:id = p['id']
+            execute 'sign unplace ' . l:id
+            call lldb#operate#send('breakpoint delete ' . l:id)
+        endfor
+        call lldb#operate#breakpoints()
+    endif
     let s:bp_counter = 0
     let s:bp_list = []
     let g:lldb#operate#is_breakpoints = v:false
 endfunction
+
 function! lldb#sign#zero() abort
-    let s:bp_place_id = 0
+    let s:bp_place_id = 1
 endfunction
 
 

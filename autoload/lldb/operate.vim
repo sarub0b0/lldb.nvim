@@ -10,6 +10,7 @@ function! lldb#operate#init()
     let s:running_type = ''
     let s:job_queue = []
     let s:output_msg = []
+    let s:job = -1
 
     let s:run_args = ''
 
@@ -43,6 +44,23 @@ function! lldb#operate#init()
     endfor
 endfunction
 
+function! s:reset_variable() abort
+    let s:join_jobs = []
+    let g:lldb#operate#buftype = ''
+    let g:lldb#operate#is_breakpoints = v:false
+    let s:running_type = ''
+    let s:job_queue = []
+    let s:output_msg = []
+    let s:job = -1
+
+    let s:run_args = ''
+
+    let s:start_bufname = ''
+    let s:temp_bufname = ''
+
+    let s:set_running_target = v:false
+endfunction
+
 function! lldb#operate#start(...) abort
     let s:start_bufname = bufname('%')
 
@@ -68,6 +86,7 @@ function! lldb#operate#stop() abort
     call lldb#sign#clean()
     call lldb#sign#zero()
     call jobstop(s:job)
+    let s:job = -1
 endfunction
 
 function! lldb#operate#run() abort
@@ -142,13 +161,26 @@ function! lldb#operate#continue() abort
     call lldb#operate#send('continue')
 endfunction
 
+function! lldb#operate#finish() abort
+    call lldb#debug#info('lldb finish')
+    if s:job != -1
+        call lldb#operate#stop()
+    endif
+    call s:reset_variable()
+    call lldb#ui#finish()
+endfunction
+
 function! s:on_event(job_id, data, event) dict abort
     let l:str = []
 
+    if len(s:job_queue) == 0
+        return 0
+    endif
+
     let s:running_type = s:job_type_dict[s:job_queue[0]]
     if a:event ==# 'exit' && s:running_type !=# 'start'
-        call lldb#debug#info('Exit event')
-        call s:output_buffer('stop', '***** exit ******')
+        call lldb#debug#info('Exit lldb')
+        " call s:output_buffer('stop', '***** exit ******')
         call lldb#sign#reset()
         return 0
     endif
