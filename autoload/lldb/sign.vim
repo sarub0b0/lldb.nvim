@@ -133,7 +133,6 @@ function! lldb#sign#check_pc(msg)
             execute 'sign place ' . l:id . ' line=' . l:line . ' name=llsign_pc_unsel file=' . l:file
         endif
     endfor
-    " execute 'sign place ' . l:id . ' line=' . l:line . ' name=llsign_pc_sel file=' . l:file
 endfunction
 
 function! s:pickup_param(msg)

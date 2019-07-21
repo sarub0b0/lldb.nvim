@@ -45,7 +45,6 @@ function! lldb#operate#init()
 endfunction
 
 function! s:reset_variable() abort
-    let s:join_jobs = []
     let g:lldb#operate#buftype = ''
     let g:lldb#operate#is_breakpoints = v:false
     let s:running_type = ''
@@ -104,7 +103,7 @@ function! lldb#operate#run() abort
 endfunction
 
 function! lldb#operate#send(cmd) abort
-    call lldb#debug#info('Send cmd: ' . a:cmd)
+    call lldb#debug#debug('Send cmd: ' . a:cmd)
     call chansend(s:job, a:cmd . "\n")
 endfunction
 
@@ -170,6 +169,12 @@ function! lldb#operate#finish() abort
     call lldb#ui#finish()
 endfunction
 
+function! s:on_exit(job_id, data, event) dict abort
+    call lldb#debug#info('Exit lldb')
+    call lldb#sign#reset()
+    return 0
+endfunction
+
 function! s:on_event(job_id, data, event) dict abort
     let l:str = []
 
@@ -178,12 +183,6 @@ function! s:on_event(job_id, data, event) dict abort
     endif
 
     let s:running_type = s:job_type_dict[s:job_queue[0]]
-    if a:event ==# 'exit' && s:running_type !=# 'start'
-        call lldb#debug#info('Exit lldb')
-        " call s:output_buffer('stop', '***** exit ******')
-        call lldb#sign#reset()
-        return 0
-    endif
 
     call lldb#debug#debug(string(a:data))
 
@@ -232,7 +231,7 @@ function! s:output_buffer(type, msg) abort
         call s:buffer_clean(l:buftype)
     endif
 
-    execute "execute bufwinnr(bufnr('" . l:buftype . "')).'wincmd w'"
+    call s:buffer_move(l:buftype)
 
     setlocal modifiable
 
@@ -278,7 +277,7 @@ function! s:output_buffer(type, msg) abort
 endfunction
 
 function! s:move_bufname(bufname) abort
-    execute "execute bufnr(bufname('" . a:bufname . "')).'wincmd w'"
+    execute bufnr(bufname(a:bufname)).'wincmd w'
 endfunction
 
 function! s:check_buftype_lldb(type)
@@ -392,7 +391,7 @@ endfunction
 let s:callbacks = {
             \ 'on_stdout': function('s:on_event'),
             \ 'on_stderr': function('s:on_event'),
-            \ 'on_exit': function('s:on_event')
+            \ 'on_exit': function('s:on_exit')
             \ }
 
 function! s:remove_empty(data) abort
@@ -420,5 +419,5 @@ function! s:buffer_clean(buftype) abort
 endfunction
 
 function! s:buffer_move(buftype) abort
-    execute "execute bufwinnr(bufnr('" . a:buftype . "')).'wincmd w'"
+    execute bufwinnr(bufnr(a:buftype)).'wincmd w'
 endfunction
